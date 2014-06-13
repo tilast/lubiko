@@ -112,7 +112,7 @@ app.use(function(req, res, next) {
  * Application routes.
  */
 
-app.get('/', homeController.index);
+app.get('/index', homeController.index);
 app.get('/login', userController.getLogin);
 app.post('/login', userController.postLogin);
 app.get('/logout', userController.logout);
@@ -163,6 +163,12 @@ app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', '
 app.get('/auth/facebook/callback', passport.authenticate('facebook', { failureRedirect: '/login' }), function(req, res) {
   res.redirect(req.session.returnTo || '/');
 });
+
+app.get('/auth/vkontakte', passport.authenticate('vkontakte', { fields: ['city'] }));
+app.get('/auth/vkontakte/callback', passport.authenticate('vkontakte', { failureRedirect: '/login' }), function(req, res) {
+  res.redirect(req.session.returnTo || '/');
+});
+
 app.get('/auth/github', passport.authenticate('github'));
 app.get('/auth/github/callback', passport.authenticate('github', { failureRedirect: '/login' }), function(req, res) {
   res.redirect(req.session.returnTo || '/');
@@ -196,6 +202,8 @@ app.get('/auth/venmo', passport.authorize('venmo', { scope: 'make_payments acces
 app.get('/auth/venmo/callback', passport.authorize('venmo', { failureRedirect: '/api' }), function(req, res) {
   res.redirect('/api/venmo');
 });
+
+app.get('/', homeController.spa);
 
 /**
  * 500 Error Handler.

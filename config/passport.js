@@ -6,6 +6,7 @@ var FacebookStrategy = require('passport-facebook').Strategy;
 var TwitterStrategy = require('passport-twitter').Strategy;
 var GitHubStrategy = require('passport-github').Strategy;
 var GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+var VKStrategy = require('passport-vkontakte').Strategy;
 var LinkedInStrategy = require('passport-linkedin-oauth2').Strategy;
 var OAuthStrategy = require('passport-oauth').OAuthStrategy; // Tumblr
 var OAuth2Strategy = require('passport-oauth').OAuth2Strategy; // Venmo, Foursquare
@@ -141,6 +142,61 @@ passport.use(new FacebookStrategy(secrets.facebook, function(req, accessToken, r
     });
   }
 }));
+
+// VK API setup
+passport.use(new VKStrategy(secrets.vk,
+  function(req, accessToken, refreshToken, profile, done) {
+    // console.log("VK token");
+    // User.findOne({ vkontakte: profile.id }, function (err, user) {
+    //   console.log("authorized");
+    //   console.log(user);
+    //   return done(err, user);
+    // });
+
+    if (req.user) {
+      User.findOne({ vkontakte: profile.id }, function(err, existingUser) {
+        if (existingUser) {
+          req.flash('errors', { msg: 'There is already a Facebook account that belongs to you. Sign in with that account or delete it, then link it with your current account.' });
+          done(err);
+        } else {
+          User.findById(req.user.id, function(err, user) {
+            user.vkontakte = profile.id;
+            user.tokens.push({ kind: 'vkontakte', accessToken: accessToken });
+            user.profile.name = user.profile.name || profile.displayName;
+            user.profile.gender = user.profile.gender || profile.gender; 
+            user.profile.picture = user.profile.picture || profile._json.photo;
+            user.save(function(err) {
+              req.flash('info', { msg: 'Vkontakte account has been linked.' });
+              done(err, user);
+            });
+          });
+        }
+      });
+    } else {
+      User.findOne({ vkontakte: profile.id }, function(err, existingUser) {
+        if (existingUser) return done(null, existingUser);
+        User.findOne({ email: profile._json.id + "@vk.com" }, function(err, existingEmailUser) {
+          if (existingEmailUser) {
+            req.flash('errors', { msg: 'There is already an account using this email address. Sign in to that account and link it with Vkontakte manually from Account Settings.' });
+            done(err);
+          } else {
+            var user = new User();
+            user.email = profile._json.id + "@vk.com";
+            user.vkontakte = profile.id;
+            user.tokens.push({ kind: 'vkontakte', accessToken: accessToken });
+            user.profile.name = profile.displayName;
+            user.profile.gender = profile.gender;
+            user.profile.picture = profile._json.photo;
+            user.save(function(err) {
+              done(err, user);
+            });
+          }
+        });
+      });
+    }
+
+  }
+));
 
 // Sign in with GitHub.
 

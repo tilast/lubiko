@@ -18,7 +18,7 @@
 
 module.exports = {
 
-  db: process.env.MONGODB|| 'mongodb://localhost:27017/test',
+  db: process.env.MONGODB|| 'mongodb://localhost:27017/lubiko',
 
   sessionSecret: process.env.SESSION_SECRET || 'Your Session Secret goes here',
 
@@ -50,6 +50,13 @@ module.exports = {
     clientID: process.env.FACEBOOK_ID || '754220301289665',
     clientSecret: process.env.FACEBOOK_SECRET || '41860e58c256a3d7ad8267d3c1939a4a',
     callbackURL: '/auth/facebook/callback',
+    passReqToCallback: true
+  },
+
+  vk: {
+    clientID:     '2159455', // VK.com docs call it 'API ID'
+    clientSecret: 'HIHjv6OoZVri82LRuaKH',
+    callbackURL:  "/auth/vkontakte/callback",
     passReqToCallback: true
   },
 
